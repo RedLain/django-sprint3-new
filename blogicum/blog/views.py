@@ -1,7 +1,6 @@
-from django.http import Http404
 from django.shortcuts import render, get_object_or_404
-from .models import Post, Category
 from django.utils import timezone
+from .models import Post, Category
 
 
 def index(request):
@@ -11,11 +10,12 @@ def index(request):
         .select_related('author', 'location', 'category')
         .filter(
             pub_date__lte=timezone.now(),
-            is_published=True
+            is_published=True,
+            category__is_published=True,
         )
         .order_by('-pub_date')[:5]
     )
-    context = {'posts': posts}
+    context = {'post_list': posts}
     return render(request, template, context)
 
 
@@ -27,9 +27,9 @@ def post_detail(request, id):
         .filter(
             pub_date__lte=timezone.now(),
             is_published=True,
-            category__is_published=True
+            category__is_published=True,
         ),
-        pk=id
+        pk=id,
     )
     context = {'post': post}
     return render(request, template, context)
@@ -40,7 +40,7 @@ def category_posts(request, category_slug):
     category = get_object_or_404(
         Category,
         slug=category_slug,
-        is_published=True
+        is_published=True,
     )
     posts = (
         Post.objects
@@ -48,8 +48,9 @@ def category_posts(request, category_slug):
         .filter(
             category=category,
             pub_date__lte=timezone.now(),
-            is_published=True
+            is_published=True,
         )
+        .order_by('-pub_date')
     )
-    context = {'posts': posts, 'category': category}
+    context = {'post_list': posts, 'category': category}
     return render(request, template, context)
