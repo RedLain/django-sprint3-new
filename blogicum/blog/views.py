@@ -2,10 +2,11 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Post, Category
 
+POSTS_LIMIT = 5
 
-def index(request):
-    template = 'blog/index.html'
-    posts = (
+
+def get_published_post():
+    return (
         Post.objects
         .select_related('author', 'location', 'category')
         .filter(
@@ -13,24 +14,19 @@ def index(request):
             is_published=True,
             category__is_published=True,
         )
-        .order_by('-pub_date')[:5]
     )
+
+
+def index(request):
+    template = 'blog/index.html'
+    posts = get_published_post()[:POSTS_LIMIT]
     context = {'post_list': posts}
     return render(request, template, context)
 
 
 def post_detail(request, id):
     template = 'blog/detail.html'
-    post = get_object_or_404(
-        Post.objects
-        .select_related('author', 'location', 'category')
-        .filter(
-            pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True,
-        ),
-        pk=id,
-    )
+    post = get_object_or_404(get_published_post(), pk=id,)
     context = {'post': post}
     return render(request, template, context)
 
@@ -42,15 +38,6 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True,
     )
-    posts = (
-        Post.objects
-        .select_related('author', 'location', 'category')
-        .filter(
-            category=category,
-            pub_date__lte=timezone.now(),
-            is_published=True,
-        )
-        .order_by('-pub_date')
-    )
-    context = {'post_list': posts, 'category': category}
+    posts_list = get_published_post().filter(category=category)
+    context = {'post_list': posts_list, 'category': category}
     return render(request, template, context)

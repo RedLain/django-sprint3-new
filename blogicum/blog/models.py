@@ -3,6 +3,9 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+TITLE_MAX_LENGTH = 256
+MAX_STR_LENGTH = 20
+
 
 class BlogModel(models.Model):
     is_published = models.BooleanField(
@@ -16,7 +19,7 @@ class BlogModel(models.Model):
 
 
 class Category(BlogModel):
-    title = models.CharField('Заголовок', max_length=256)
+    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
     description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор', unique=True,
@@ -24,31 +27,31 @@ class Category(BlogModel):
         'разрешены символы латиницы, цифры, дефис и подчёркивание.'
     )
 
-    class Meta:
+    class Meta(BlogModel.Meta):
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title
+        return self.title[:MAX_STR_LENGTH]
 
 
 class Location(BlogModel):
-    name = models.CharField('Название места', max_length=256)
+    name = models.CharField('Название места', max_length=TITLE_MAX_LENGTH)
 
-    class Meta:
+    class Meta(BlogModel.Meta):
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
 
     def __str__(self):
-        return self.name
+        return self.name[:MAX_STR_LENGTH]
 
 
 class Post(BlogModel):
-    title = models.CharField('Название', max_length=256)
+    title = models.CharField('Название', max_length=TITLE_MAX_LENGTH)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
-        help_text='Если установить дату и время в будущем —' \
+        help_text='Если установить дату и время в будущем —'
         ' можно делать отложенные публикации.'
     )
     author = models.ForeignKey(
@@ -70,12 +73,15 @@ class Post(BlogModel):
         null=True,
         verbose_name='Категория'
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Добавлено'
+    )
 
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
+        ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.title
-   
+        return self.title[:MAX_STR_LENGTH]
