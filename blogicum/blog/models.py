@@ -47,7 +47,7 @@ class Location(BlogModel):
 
 
 class Post(BlogModel):
-    title = models.CharField('Название', max_length=TITLE_MAX_LENGTH)
+    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',

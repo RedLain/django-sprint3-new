@@ -1,9 +1,9 @@
 import pytest
+from blog.models import Post
 from django.db.models import (
     BooleanField, CharField, DateTimeField, ForeignKey, TextField)
 from django.db.utils import IntegrityError
 
-from blog.models import Post
 from tests.conftest import _TestModelAttrs
 
 pytestmark = [
@@ -30,6 +30,7 @@ class TestPostModelAttrs(_TestModelAttrs):
 
 
 def test_author_on_delete(posts_with_author):
+    post_ids = [post.id for post in posts_with_author]
     author = posts_with_author[0].author
     try:
         author.delete()
@@ -38,14 +39,15 @@ def test_author_on_delete(posts_with_author):
             'Проверьте, что значение атрибута `on_delete` '
             'поля `author` в модели `Post` соответствует заданию.'
         )
-    assert not Post.objects.filter(author=author).exists(), (
+    assert not Post.objects.filter(id__in=post_ids).exists(), (
         'Проверьте, что значение атрибута `on_delete` '
         'поля `author` в модели `Post` соответствует заданию.'
     )
 
 
 def test_location_on_delete(posts_with_published_locations):
-    location = posts_with_published_locations[0].location
+    post = posts_with_published_locations[0]
+    location = post.location
     try:
         location.delete()
     except IntegrityError:
@@ -53,7 +55,25 @@ def test_location_on_delete(posts_with_published_locations):
             'Проверьте, что значение атрибута `on_delete` '
             'поля `location` в модели `Post` соответствует заданию.'
         )
-    assert Post.objects.filter(location=location).exists(), (
+    post.refresh_from_db()
+    assert post.location is None, (
         'Проверьте, что значение атрибута `on_delete` '
         'поля `location` в модели `Post` соответствует заданию.'
+    )
+
+
+def test_category_on_delete(posts_with_published_locations):
+    post = posts_with_published_locations[0]
+    category = post.category
+    try:
+        category.delete()
+    except IntegrityError:
+        raise AssertionError(
+            'Проверьте, что значение атрибута `on_delete` '
+            'поля `category` в модели `Post` соответствует заданию.'
+        )
+    post.refresh_from_db()
+    assert post.category is None, (
+        'Проверьте, что значение атрибута `on_delete` '
+        'поля `category` в модели `Post` соответствует заданию.'
     )

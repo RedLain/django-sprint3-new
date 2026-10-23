@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
-import pytz
 from django.contrib.auth import get_user_model
 
 N_TEST_POSTS = 4
@@ -27,7 +26,7 @@ def posts_with_unpublished_category(mixer):
 @pytest.fixture
 def posts_with_future_date(mixer):
     date_later_now = (
-        datetime.now(tz=pytz.UTC) + timedelta(days=date)
+        datetime.now(tz=UTC) + timedelta(days=date)
         for date in range(1, 11)
     )
     return mixer.cycle(N_TEST_POSTS).blend(
@@ -118,7 +117,7 @@ def post_with_unpublished_location(
 
 @pytest.fixture
 def post_with_future_date(mixer):
-    date_later_now = datetime.now(tz=pytz.UTC) + timedelta(days=1)
+    date_later_now = datetime.now(tz=UTC) + timedelta(days=1)
     return mixer.blend('blog.Post', pub_date=date_later_now)
 
 
